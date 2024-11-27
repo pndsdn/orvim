@@ -1,6 +1,6 @@
 # Сборка фронта
 ```
-cd frontend
+cd orvim-frontend
 yarn install && yarn build
 mv ./dist/ ../nginx/
 ```
