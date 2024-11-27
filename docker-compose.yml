@@ -1,0 +1,81 @@
+services:
+  nginx:
+    image: base-nginx
+    build: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/dist:/public
+    networks:
+      - orvim
+
+  restapi:
+      image: base-backend
+      build: backend
+      restart: always
+      depends_on:
+        - db
+      env_file:
+        - .env
+      ports:
+        - "8000:8000"
+      entrypoint: ["python3", "main.py"]
+      networks:
+        - orvim
+
+  db:
+    image: postgres:17.0
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - orvim
+
+  minio:
+    image: minio/minio
+    command: server --console-address :9005 /data
+    ports:
+      - '9090:9000'
+      - '9005:9005'
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      -  minio_data:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+    networks:
+      - orvim
+
+  chromadb:
+    image: chromadb/chroma
+    restart: always
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks:
+      - orvim
+
+networks:
+  orvim:
+    external: true
+
+volumes:
+  minio_data:
+    driver: local
+  postgres_data:
+    driver: local
+  chroma_data:
+    driver: local
