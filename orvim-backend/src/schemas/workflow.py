@@ -197,3 +197,14 @@ class UpdateWorkflowAgent(BaseModel):
     host_permissions: Optional[HostSettings]
 
 
+class Transform(BaseModel):
+    type: str
+    data: dict
+
+
+class ConnectTask(BaseModel):
+    flow_id: int
+    type: str
+    data: dict
+    transforms: list[Transform]
+    rag_data: dict

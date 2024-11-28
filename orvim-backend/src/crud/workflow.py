@@ -6,7 +6,25 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
 from models.user import User, UserInfo
 from models.workflow import Workflow, ConnectionLog
-from schemas.workflow import WorkflowGraphSettings, UpdateWorkflowAgent, HostSettings, StyleSettings
+from schemas.workflow import (WorkflowGraphSettings, UpdateWorkflowAgent, HostSettings, StyleSettings,
+                              RagEmbedder, RagChunker, RagLLMQa, EnumConnectionType)
+
+from pydantic import BaseModel
+
+
+class Transform(BaseModel):
+    type: str
+    data: dict
+
+
+class ConnectTask(BaseModel):
+    flow_id: int
+    type: EnumConnectionType
+    data: dict
+    transforms: list[Transform]
+    embedder: RagEmbedder
+    chunker: RagChunker
+    llmqa: RagLLMQa
 
 
 def get_all_my_workflows(workspace_id: int,
@@ -31,7 +49,8 @@ def get_unsafe_workflow_by_id(workflow_id: int,
 
 def update_workflow_by_id(workflow_id: int,
                           node_list: List[WorkflowGraphSettings],
-                          db: Session) -> None:
+                          db: Session) -> List[Any]:
+    analytics_data = []
     workflow = db.query(Workflow).filter(Workflow.id == workflow_id).first()
     connectors_data, transformers_data = [], []
     embedder, chunker, llmqa = {}, {}, {}
@@ -42,6 +61,10 @@ def update_workflow_by_id(workflow_id: int,
                                     "label": node.label,
                                     "connections": node.connections,
                                     "data": node.data})
+            analytics_data.append({"flow_id": workflow_id,
+                                   "type": node.label,
+                                   "data": node.data,
+                                   "transforms": node.connections})
         elif node.type == "transform":
             transformers_data.append({"id": node.id,
                                       "type": node.type,
@@ -73,13 +96,32 @@ def update_workflow_by_id(workflow_id: int,
     workflow.embedder_data = embedder
     workflow.chunker_data = chunker
     workflow.llmqa_data = llmqa
+
+    for node in analytics_data:
+        node["embedder"] = embedder
+        node["chunker"] = chunker
+        node["llmqa"] = llmqa
+        update_transform = []
+        for transform_id in node["transforms"]:
+            requested_transform = None
+            for transform in transformers_data:
+                if transform["id"] == transform_id:
+                    requested_transform = transform
+                    break
+            update_transform.append({"type": requested_transform["label"],
+                                     "data": requested_transform["data"]})
+
     db.commit()
+
+    return analytics_data
 
 
 def create_workflow(workflow_name: str,
                     workspace_id: int,
                     node_list: List[WorkflowGraphSettings],
-                    db: Session) -> None:
+                    db: Session) -> List[Any]:
+    analytics_data = []
+    # счетчик для уникального названия
     counter = db.query(Workflow).filter(Workflow.workspace_id == workspace_id).count()
     workflow = Workflow(name=workflow_name + " " + str(counter),
                         workspace_id=workspace_id)
@@ -93,6 +135,11 @@ def create_workflow(workflow_name: str,
                                     "label": node.label,
                                     "connections": node.connections,
                                     "data": node.data})
+            # Добавление записи в список для анализа
+            analytics_data.append({"flow_id": 0,
+                                   "type": node.label,
+                                   "data": node.data,
+                                   "transforms": node.connections})
         elif node.type == "transform":
             transformers_data.append({"id": node.id,
                                       "type": node.type,
@@ -132,6 +179,22 @@ def create_workflow(workflow_name: str,
                                "style_css": ""}
     db.add(workflow)
     db.commit()
+
+    for node in analytics_data:
+        node["id"] = workflow.id
+        node["embedder"] = embedder
+        node["chunker"] = chunker
+        node["llmqa"] = llmqa
+        update_transform = []
+        for transform_id in node["transforms"]:
+            requested_transform = None
+            for transform in transformers_data:
+                if transform["id"] == transform_id:
+                    requested_transform = transform
+                    break
+            update_transform.append({"type": requested_transform["label"],
+                                     "data": requested_transform["data"]})
+    return analytics_data
 
 
 def update_workflow_agent(workflow: Workflow,

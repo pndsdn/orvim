@@ -198,7 +198,7 @@ export const defaultData: BackendNode[] = [
     type: 'rag',
     label: 'chunker',
     connections: [],
-    data: { chunk_size: 0, chunk_overlap: 0 },
+    data: { chunk_size: 500, chunk_overlap: 50 },
   },
   {
     id: 'RAG-2',
@@ -227,30 +227,16 @@ export const defaultData: BackendNode[] = [
 
 export const startData: BackendNode[] = [
   {
-    id: 'connection-5',
+    id: 'connection-1',
     type: 'connection',
     label: 's3',
     connections: [],
     data: { s3_path: [] },
   },
   {
-    id: 'transform-2',
+    id: 'transform-1',
     type: 'transform',
-    label: 'ocr',
-    connections: [],
-    data: { endpoint_url: '', headers: '', max_symbols: 0 },
-  },
-  {
-    id: 'transform-3',
-    type: 'transform',
-    label: 'asr',
-    connections: [],
-    data: { endpoint_url: '', headers: '', max_symbols: 0 },
-  },
-  {
-    id: 'transform-5',
-    type: 'transform',
-    label: 'clip',
+    label: 'txt_parser',
     connections: [],
     data: { url: '' },
   },
@@ -259,7 +245,7 @@ export const startData: BackendNode[] = [
     type: 'rag',
     label: 'chunker',
     connections: [],
-    data: { chunk_size: 0, chunk_overlap: 0 },
+    data: { chunk_size: 500, chunk_overlap: 50 },
   },
   {
     id: 'RAG-2',

@@ -30,5 +30,9 @@ class Settings(BaseSettings):
 
     MINIMAL_PASSWORD_LENGTH: int = 8
 
+    EMBEDDER_URL: str = "your-embedder-url"
+    CHROMADB_URL: str = "your-chromadb-url"
+    CHROMADB_PORT: int = 8001
+
 
 settings = Settings()

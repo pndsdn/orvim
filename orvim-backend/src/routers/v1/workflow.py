@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from typing import List
 from core.db import get_database, Session
@@ -42,10 +44,12 @@ async def create_workflow_settings(workflow_settings: List[WorkflowGraphSettings
                                    workflow_name: str = "База знаний",
                                    user: User = Depends(get_user),
                                    db: Session = Depends(get_database)) -> None:
-    create_workflow(workflow_name=workflow_name,
-                    workspace_id=user.id,
-                    node_list=workflow_settings,
-                    db=db)
+    analytics_list = create_workflow(workflow_name=workflow_name,
+                                     workspace_id=user.id,
+                                     node_list=workflow_settings,
+                                     db=db)
+    logging.error(analytics_list)
+    # send it later to RabbitMQ
 
 
 @router.put("/settings",
@@ -62,9 +66,10 @@ async def update_workflow_settings(workflow_id: int,
         raise errors.workflow_not_found()
     clear_workflow_logs(workflow_id=workflow_id,
                         db=db)
-    update_workflow_by_id(workflow_id=workflow_id,
-                          node_list=workflow_settings,
-                          db=db)
+    analytics_list = update_workflow_by_id(workflow_id=workflow_id,
+                                           node_list=workflow_settings,
+                                           db=db)
+    # send it later to RabbitMQ
 
 
 @router.patch("/name",
@@ -129,3 +134,10 @@ async def delete_workflow(workflow_id: int,
         raise errors.workflow_not_found()
     delete_workflow_by_object(workflow,
                               db)
+
+
+# сгенерировать список ConnectTask
+@router.put("/{workflow_id}/update")
+async def update_workflow(workflow_id: int,
+                          db: Session = Depends(get_database)):
+    pass
