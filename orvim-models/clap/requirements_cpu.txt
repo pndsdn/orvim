@@ -1,0 +1,4 @@
+transformers
+librosa
+fastapi
+uvicorn

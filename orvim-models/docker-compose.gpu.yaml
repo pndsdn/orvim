@@ -1,0 +1,68 @@
+services:
+  clap:
+    build:
+      context: ./clap
+      dockerfile: Dockerfile.gpu
+    runtime: nvidia  # Указывает использовать GPU
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PORT=80
+      - HOST=0.0.0.0
+      - DEVICE=cuda:0
+    ports:
+      - "28001:80"
+    networks:
+      - orvim
+
+  clip:
+    build:
+      context: ./clip
+      dockerfile: Dockerfile.gpu
+    runtime: nvidia  # Указывает использовать GPU
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PORT=80
+      - HOST=0.0.0.0
+      - DEVICE=cuda:0
+    ports:
+      - "28002:80"
+    networks:
+      - orvim
+
+  embedder:
+    build:
+      context: ./embedder
+      dockerfile: Dockerfile.gpu
+    runtime: nvidia  # Указывает использовать GPU
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PORT=80
+      - HOST=0.0.0.0
+      - DEVICE=cuda:0
+    ports:
+      - "28003:80"
+    networks:
+      - orvim
+
+  ocr:
+    build:
+      context: ./ocr
+      dockerfile: Dockerfile.gpu
+    runtime: nvidia  # Указывает использовать GPU
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PORT=80
+      - HOST=0.0.0.0
+      - DEVICE=cuda:0
+    ports:
+      - "28004:80"
+    networks:
+      - orvim
+      
+networks:
+  orvim:
+    external: true
