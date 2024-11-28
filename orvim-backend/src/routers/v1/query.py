@@ -22,8 +22,8 @@ async def get_query_response(query: str,
 
     result = generate_response(question=query,
                                prompt_template=workflow.promt_template,
-                               llm_name=workflow.rags_data["llm_name"],
-                               llm_kwargs=workflow.rags_data["llm_kwargs"],
+                               llm_name=workflow.llmqa_data["llm_name"],
+                               llm_kwargs=workflow.llmqa_data["llm_kwargs"],
                                n_results=5,
                                db_id=workflow_id,
                                model_name=workflow.rags_data["embeddings"])
