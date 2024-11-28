@@ -1,0 +1,7 @@
+{
+    "flow_id": 222,
+    "type":"s3",
+    "data": {"s3_paths": ["1"]},
+    "transforms":[],
+    "rag_data":"aaaaa"
+}

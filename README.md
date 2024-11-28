@@ -2,10 +2,12 @@
 ```
 cd orvim-frontend
 yarn install && yarn build
-mv ./dist/ ../nginx/
+mkdir ../nginx/public
+mv dist/* chat-widget/ ../nginx/public
 ```
 
 # Развертывание
 ```
+cp .env.example .env
 docker compose up -d --build
 ```

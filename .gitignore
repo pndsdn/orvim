@@ -436,7 +436,11 @@ cython_debug/
 # Frontend
 
 # Dependency directories
-frontend/node_modules/
+orvim-frontend/node_modules/
 
 # Distribution directories
-frontend/dist/
+orvim-frontend/dist/
+
+postgres_data/
+chroma_data/
+

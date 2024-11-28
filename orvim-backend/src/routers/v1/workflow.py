@@ -7,7 +7,7 @@ from schemas.workflow import WorkflowGraphSettings, GetAllMyWorkflows, UpdateWor
 import core.errors as errors
 from crud.workflow import (get_all_my_workflows, get_workflow_by_id, update_workflow_by_id,
                            create_workflow, update_workflow_agent, update_workflow_name_by_object,
-                           delete_workflow_by_object)
+                           delete_workflow_by_object, clear_workflow_logs)
 
 router = APIRouter()
 
@@ -15,9 +15,9 @@ router = APIRouter()
 @router.get("/settings",
             response_model=List[WorkflowGraphSettings],
             responses=errors.with_errors(errors.workflow_not_found()))
-async def get_workspace_workflow_settings(workflow_id: int,
-                                          user: User = Depends(get_user),
-                                          db: Session = Depends(get_database)) -> List[WorkflowGraphSettings]:
+async def get_workflow_settings(workflow_id: int,
+                                user: User = Depends(get_user),
+                                db: Session = Depends(get_database)) -> List[WorkflowGraphSettings]:
     workflow = get_workflow_by_id(workflow_id,
                                   user.id,
                                   db)
@@ -26,9 +26,7 @@ async def get_workspace_workflow_settings(workflow_id: int,
     all_nodes = []
     all_nodes.extend(workflow.connectors_data)
     all_nodes.extend(workflow.transformers_data)
-    rags_data = workflow.rags_data
-    rags_data["promt"] = workflow.promt_template
-    all_nodes.append(rags_data)
+    all_nodes.extend([workflow.chunker_data, workflow.embedder_data, workflow.llmqa_data])
     return [WorkflowGraphSettings(id=node["id"],
                                   type=node["type"],
                                   label=node["label"],
@@ -39,10 +37,10 @@ async def get_workspace_workflow_settings(workflow_id: int,
 @router.post("/settings",
              status_code=201,
              responses=errors.with_errors())
-async def create_workspace_workflow_settings(workflow_settings: List[WorkflowGraphSettings],
-                                             workflow_name: str = "База знаний",
-                                             user: User = Depends(get_user),
-                                             db: Session = Depends(get_database)) -> None:
+async def create_workflow_settings(workflow_settings: List[WorkflowGraphSettings],
+                                   workflow_name: str = "База знаний",
+                                   user: User = Depends(get_user),
+                                   db: Session = Depends(get_database)) -> None:
     create_workflow(workflow_name=workflow_name,
                     workspace_id=user.id,
                     node_list=workflow_settings,
@@ -52,15 +50,20 @@ async def create_workspace_workflow_settings(workflow_settings: List[WorkflowGra
 @router.put("/settings",
             status_code=204,
             responses=errors.with_errors(errors.workflow_not_found()))
-async def update_workspace_workflow_settings(workflow_id: int,
-                                             workflow_settings: List[WorkflowGraphSettings],
-                                             user: User = Depends(get_user),
-                                             db: Session = Depends(get_database)):
+async def update_workflow_settings(workflow_id: int,
+                                   workflow_settings: List[WorkflowGraphSettings],
+                                   user: User = Depends(get_user),
+                                   db: Session = Depends(get_database)):
     workflow = get_workflow_by_id(workflow_id,
                                   user.id,
                                   db)
     if workflow is None:
         raise errors.workflow_not_found()
+    clear_workflow_logs(workflow_id=workflow_id,
+                        db=db)
+    update_workflow_by_id(workflow_id=workflow_id,
+                          node_list=workflow_settings,
+                          db=db)
 
 
 @router.patch("/name",

@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine
 from contextlib import contextmanager
 
-from settings import settings
+from .settings import settings
 
 
 def _json_default(obj: Any) -> Union[str, dict]:

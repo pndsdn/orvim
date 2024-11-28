@@ -21,4 +21,4 @@ async def upload_data_connection(file: UploadFile,
                                  db: Session = Depends(get_database)) -> FileUploadResponse:
     s3_path = f"connection/{user.id}/{str(uuid4())}_{file.filename}"
     s3_connection.upload_file(file.file.read(), s3_path)
-    return FileUploadResponse(s3_path=s3_connection.get_url(s3_path))
+    return FileUploadResponse(s3_path=s3_path)

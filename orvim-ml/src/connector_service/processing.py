@@ -1,4 +1,5 @@
-from common.db_session import Session
+from common.workflow import ConnectionS3
+from common.schema import Document
 
-
-def process_s3_connector(data: str, db: Session, rabbit:str):
+def process_s3(data: ConnectionS3) -> list[Document]:
+    return ["TEEEEEEEEXT", "222222"]

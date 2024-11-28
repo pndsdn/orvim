@@ -1,12 +1,11 @@
-from sqlalchemy.orm import undefer_group
 from core.db import Session
-from sqlalchemy import select, or_, update
+from sqlalchemy import select, or_, update, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.functions import count
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
 from models.user import User, UserInfo
-from models.workflow import Workflow
+from models.workflow import Workflow, ConnectionLog
 from schemas.workflow import WorkflowGraphSettings
 
 
@@ -31,8 +30,50 @@ def get_unsafe_workflow_by_id(workflow_id: int,
 
 
 def update_workflow_by_id(workflow_id: int,
+                          node_list: List[WorkflowGraphSettings],
                           db: Session) -> None:
-    pass
+    workflow = db.query(Workflow).filter(Workflow.id == workflow_id).first()
+    connectors_data, transformers_data = [], []
+    embedder, chunker, llmqa = {}, {}, {}
+    for node in node_list:
+        if node.type == "connection":
+            connectors_data.append({"id": node.id,
+                                    "type": node.type,
+                                    "label": node.label,
+                                    "connections": node.connections,
+                                    "data": node.data})
+        elif node.type == "transform":
+            transformers_data.append({"id": node.id,
+                                      "type": node.type,
+                                      "label": node.label,
+                                      "connections": node.connections,
+                                      "data": node.data})
+        elif node.type == "rag" and node.label == "llm_qa":
+            workflow.promt_template = node.data["promt_template"]
+            llmqa = {"id": node.id,
+                     "type": node.type,
+                     "label": node.label,
+                     "connections": node.connections,
+                     "data": node.data}
+        elif node.type == "rag" and node.label == "embedder":
+            chunker = {"id": node.id,
+                       "type": node.type,
+                       "label": node.label,
+                       "connections": node.connections,
+                       "data": node.data}
+        elif node.type == "rag" and node.label == "chunker":
+            embedder = {"id": node.id,
+                        "type": node.type,
+                        "label": node.label,
+                        "connections": node.connections,
+                        "data": node.data}
+
+    workflow.connectors_data = connectors_data
+    workflow.transformers_data = transformers_data
+    workflow.embedder_data = embedder
+    workflow.chunker_data = chunker
+    workflow.llmqa_data = llmqa
+    db.commit()
 
 
 def create_workflow(workflow_name: str,
@@ -42,31 +83,46 @@ def create_workflow(workflow_name: str,
     workflow = Workflow(name=workflow_name,
                         workspace_id=workspace_id)
 
-    connectors_data, transformers_data, rags_data = [], [], {}
+    connectors_data, transformers_data = [], []
+    embedder, chunker, llmqa = {}, {}, {}
     for node in node_list:
-        if node["type"] == "connection":
+        if node.type == "connection":
             connectors_data.append({"id": node.id,
                                     "type": node.type,
                                     "label": node.label,
                                     "connections": node.connections,
                                     "data": node.data})
-        elif node["type"] == "transform":
+        elif node.type == "transform":
             transformers_data.append({"id": node.id,
                                       "type": node.type,
                                       "label": node.label,
                                       "connections": node.connections,
                                       "data": node.data})
-        else:
-            workflow.promt_template = node.data["promt"]
-            rags_data = {"id": node.id,
-                         "type": node.type,
-                         "label": node.label,
-                         "connections": node.connections,
-                         "data": node.data}
+        elif node.type == "rag" and node.label == "llm_qa":
+            workflow.promt_template = node.data["prompt_template"]
+            llmqa = {"id": node.id,
+                     "type": node.type,
+                     "label": node.label,
+                     "connections": node.connections,
+                     "data": node.data}
+        elif node.type == "rag" and node.label == "embedder":
+            chunker = {"id": node.id,
+                       "type": node.type,
+                       "label": node.label,
+                       "connections": node.connections,
+                       "data": node.data}
+        elif node.type == "rag" and node.label == "chunker":
+            embedder = {"id": node.id,
+                        "type": node.type,
+                        "label": node.label,
+                        "connections": node.connections,
+                        "data": node.data}
 
     workflow.connectors_data = connectors_data
     workflow.transformers_data = transformers_data
-    workflow.rags_data = rags_data
+    workflow.embedder_data = embedder
+    workflow.chunker_data = chunker
+    workflow.llmqa_data = llmqa
 
     db.add(workflow)
     db.commit()
@@ -94,3 +150,9 @@ def delete_workflow_by_object(workflow: Workflow,
                               db: Session) -> None:
     db.delete(workflow)
     db.commit()
+
+
+def clear_workflow_logs(workflow_id: int,
+                        db: Session) -> None:
+    stmt = delete(ConnectionLog).where(workflow_id == workflow_id)
+    db.execute(stmt)

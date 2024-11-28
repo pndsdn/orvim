@@ -1,0 +1,14 @@
+services:
+  connector_service:
+    image: connector_service
+    build:
+      context: .
+      dockerfile: docker/connector.Dockerfile
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - msk
+networks:
+  msk:
+    external: true

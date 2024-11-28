@@ -1,0 +1,5 @@
+aio-pika>=9.4.3
+pydantic>=2.9.2
+pydantic-settings>=2.6.1
+psycopg2-binary>=2.9.10
+sqlalchemy>=2.0.36

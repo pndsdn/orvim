@@ -52,6 +52,25 @@ services:
       - ./chroma_data:/chroma/chroma
     networks:
       - msk
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    restart: always
+    environment:
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
+    env_file:
+      - .env
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics -q status && rabbitmq-diagnostics -q check_local_alarms
+      interval: 1s
+      timeout: 1s
+      retries: 30
+    networks:
+      -  msk
 
 networks:
   msk:
@@ -59,4 +78,6 @@ networks:
 
 volumes:
   minio_data:
+    driver: local
+  rabbitmq_data:
     driver: local
