@@ -6,13 +6,15 @@ from settings import settings
 from routers import router
 from core.db import create_tables as create_postgres_tables
 from core.db import create_initial_user
-
+from core.rabbitmq import rabbit_connection
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     create_postgres_tables()
     create_initial_user()
+    await rabbit_connection.connect()
     yield
+    await rabbit_connection.close()
 
 app = FastAPI(debug=settings.SERVER_TEST,
               lifespan=lifespan)

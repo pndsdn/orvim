@@ -11,7 +11,9 @@ import core.errors as errors
 from crud.workflow import (get_all_my_workflows, get_workflow_by_id, update_workflow_by_id,
                            create_workflow, update_workflow_agent, update_workflow_name_by_object,
                            delete_workflow_by_object, clear_workflow_logs)
-
+from core.rabbitmq import rabbit_connection
+import aio_pika
+import json
 router = APIRouter()
 
 
@@ -49,6 +51,16 @@ async def create_workflow_settings(workflow_settings: List[WorkflowGraphSettings
                                      node_list=workflow_settings,
                                      db=db)
     logging.error(analytics_list)
+    for msg in analytics_list:
+            await rabbit_connection.exchange_new_csv.publish(
+        aio_pika.Message(
+            body=json.dumps(msg).encode(),
+            content_type="application/json",
+            content_encoding="utf-8",
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
+        ),
+        "",
+    )
     # send it later to RabbitMQ
 
 

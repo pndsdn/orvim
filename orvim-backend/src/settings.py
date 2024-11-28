@@ -34,5 +34,10 @@ class Settings(BaseSettings):
     CHROMADB_URL: str = "your-chromadb-url"
     CHROMADB_PORT: int = 8001
 
+    RABBITMQ_HOST: str = "localhost"
+    RABBITMQ_USER: str
+    RABBITMQ_PASS: str
+    RABBITMQ_PORT: int = 5672
+
 
 settings = Settings()

@@ -181,7 +181,7 @@ def create_workflow(workflow_name: str,
     db.commit()
 
     for node in analytics_data:
-        node["id"] = workflow.id
+        node["flow_id"] = workflow.id
         node["embedder"] = embedder
         node["chunker"] = chunker
         node["llmqa"] = llmqa

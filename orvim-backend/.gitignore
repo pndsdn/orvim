@@ -253,3 +253,6 @@ frontend/node_modules/
 
 # Distribution directories
 frontend/dist/
+
+postgres_data/
+chroma_data/
