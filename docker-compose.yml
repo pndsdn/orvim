@@ -20,7 +20,7 @@ services:
       env_file:
         - .env
       ports:
-        - "8000:8000"
+        - "28080:8000"
       entrypoint: ["python3", "main.py"]
       networks:
         - orvim
