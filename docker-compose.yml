@@ -13,7 +13,7 @@ services:
 
   restapi:
       image: base-backend
-      build: backend
+      build: orvim-backend
       restart: always
       depends_on:
         - db
