@@ -22,4 +22,3 @@ langchain-text-splitters==0.3.2
 cohere==5.11.4
 chroma-hnswlib==0.7.6
 chromadb==0.5.20
-sentence-transformers==3.3.1
