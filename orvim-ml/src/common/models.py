@@ -37,9 +37,9 @@ class Workflow(Base):
     status: Mapped[EnumWorkflowStatus] = mapped_column(
         apply_workflow_status, server_default=EnumWorkflowStatus.in_progress
     )
-    style_settings: Mapped[str] = mapped_column(nullable=False, server_default="")
-    host_permissions: Mapped[List[str]] = mapped_column(
-        ARRAY(String, dimensions=1), nullable=True, server_default="{}"
+    style_settings: Mapped[Dict[Any, Any]] = mapped_column(JSONB, server_default="{}")
+    host_permissions: Mapped[Dict[Any, Any]] = mapped_column(
+        JSONB, nullable=True, server_default="{}"
     )
     connection_all: Mapped[int] = mapped_column(server_default="0")
 
@@ -51,7 +51,7 @@ class ConnectionLog(Base):
         ForeignKey("workflow.id", ondelete="CASCADE")
     )
     transform_all: Mapped[int] = mapped_column(server_default="0")
-    connection_success: Mapped[bool] = mapped_column(Boolean)
+    connection_success: Mapped[bool] = mapped_column(Boolean, nullable=True)
     error_message: Mapped[str | None] = mapped_column(nullable=True)
 
 

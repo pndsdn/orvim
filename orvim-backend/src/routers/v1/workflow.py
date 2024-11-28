@@ -3,7 +3,8 @@ from typing import List
 from core.db import get_database, Session
 from core.auth import get_user
 from models.user import User
-from schemas.workflow import WorkflowGraphSettings, GetAllMyWorkflows, UpdateWorkflowAgent
+from schemas.workflow import (WorkflowGraphSettings, GetAllMyWorkflows, UpdateWorkflowAgent,
+                              StyleSettings, HostSettings)
 import core.errors as errors
 from crud.workflow import (get_all_my_workflows, get_workflow_by_id, update_workflow_by_id,
                            create_workflow, update_workflow_agent, update_workflow_name_by_object,
@@ -104,15 +105,15 @@ async def set_workflow_agent_settings(workflow_id: int,
 @router.get("/all",
             response_model=List[GetAllMyWorkflows],
             responses=errors.with_errors())
-async def get_all_my_workflows(user: User = Depends(get_user),
-                               db: Session = Depends(get_database)) -> List[GetAllMyWorkflows]:
+async def get_all_workspace_workflows(user: User = Depends(get_user),
+                                      db: Session = Depends(get_database)) -> List[GetAllMyWorkflows]:
     workflows = get_all_my_workflows(user.id,
                                      db)
     return [GetAllMyWorkflows(id=workflow.id,
                               name=workflow.name,
                               status=workflow.status,
-                              style_settings=workflow.style_settings,
-                              host_permissions=workflow.host_permissions) for workflow in workflows]
+                              style_settings=StyleSettings(**workflow.style_settings),
+                              host_permissions=HostSettings(**workflow.host_permissions)) for workflow in workflows]
 
 
 @router.delete("/settings",

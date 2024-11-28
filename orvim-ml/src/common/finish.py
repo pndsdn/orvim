@@ -1,7 +1,8 @@
-from core.db import Session
+from sqlalchemy.orm import Session
 from sqlalchemy import text
-from schemas.workflow import EnumWorkflowStatus
-from models.workflow import Workflow
+
+from common.workflow import EnumWorkflowStatus
+from common.models import Workflow
 
 
 def try_finish_workflow(workflow_id: int,
@@ -42,17 +43,3 @@ def try_finish_connection(connection_id: int,
     if failed_transforms != 0:
         connection.connection_success = False
     db.commit()
-
-
-def create_connection_log(db: Session) -> None:
-    pass
-
-
-def create_transform_log(db: Session) -> None:
-    pass
-
-
-def process(workflow_id: int,
-            db: Session) -> None:
-    # идут данные
-    pass

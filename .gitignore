@@ -441,6 +441,6 @@ orvim-frontend/node_modules/
 # Distribution directories
 orvim-frontend/dist/
 
-postgres_data/
+*/postgres_data/
 chroma_data/
 

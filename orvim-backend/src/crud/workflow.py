@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
 from models.user import User, UserInfo
 from models.workflow import Workflow, ConnectionLog
-from schemas.workflow import WorkflowGraphSettings
+from schemas.workflow import WorkflowGraphSettings, UpdateWorkflowAgent, HostSettings, StyleSettings
 
 
 def get_all_my_workflows(workspace_id: int,
@@ -80,7 +80,8 @@ def create_workflow(workflow_name: str,
                     workspace_id: int,
                     node_list: List[WorkflowGraphSettings],
                     db: Session) -> None:
-    workflow = Workflow(name=workflow_name,
+    counter = db.query(Workflow).filter(Workflow.workspace_id == workspace_id).count()
+    workflow = Workflow(name=workflow_name + " " + str(counter),
                         workspace_id=workspace_id)
 
     connectors_data, transformers_data = [], []
@@ -123,19 +124,29 @@ def create_workflow(workflow_name: str,
     workflow.embedder_data = embedder
     workflow.chunker_data = chunker
     workflow.llmqa_data = llmqa
-
+    workflow.host_permissions = {"domens": [],
+                                 "ipaddress": []}
+    workflow.style_settings = {"title": "",
+                               "theme_colour": "",
+                               "icon_url": "",
+                               "style_css": ""}
     db.add(workflow)
     db.commit()
 
 
 def update_workflow_agent(workflow: Workflow,
-                          style_settings: str | None,
-                          host_permissions: List[str] | None,
+                          style_settings: StyleSettings | None,
+                          host_permissions: HostSettings | None,
                           db: Session) -> None:
     if host_permissions is not None:
-        workflow.host_permissions = host_permissions
+        workflow.host_permissions = {"domens": host_permissions.domens,
+                                     "ipaddress": host_permissions.ipaddress}
+
     if style_settings is not None:
-        workflow.style_settings = style_settings
+        workflow.style_settings = {"title": style_settings.title,
+                                   "theme_colour": style_settings.theme_colour,
+                                   "icon_url": style_settings.icon_url,
+                                   "style_css": style_settings.style_css}
     db.commit()
 
 

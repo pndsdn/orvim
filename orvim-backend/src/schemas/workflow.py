@@ -172,31 +172,28 @@ class WorkflowGraphSettings(BaseModel):
         return self
 
 
+class StyleSettings(BaseModel):
+    title: str
+    theme_colour: str
+    icon_url: str
+    style_css: str
+
+
+class HostSettings(BaseModel):
+    domens: List[str]
+    ipaddress: List[str]
+
+
 class GetAllMyWorkflows(BaseModel):
     id: int
     name: str
     status: EnumWorkflowStatus
-    style_settings: str
-    host_permissions: List[str]
+    style_settings: StyleSettings
+    host_permissions: HostSettings
 
 
 class UpdateWorkflowAgent(BaseModel):
-    style_settings: Optional[str]
-    host_permissions: Optional[List[str]]
+    style_settings: Optional[StyleSettings]
+    host_permissions: Optional[HostSettings]
 
 
-"""
-Workflow Graph Settings example
-
-const backendData: BackendNode[] = [
-  { id: 'addable-1', type: ‘connection’, label: 'confluence', connections: ['static-1’], data: {} }, // connections=‘all’-все transform 
-  { id: 'addable-2', type: 'connection', label: 'url', connections: ['static-2'], data: {} },
-  { id: 'static-1', type: 'transform', label: 'pdf_parser', connections: [], data: {} }, // 
-  { id: 'static-2', type: 'transform', label: 'ocr', connections: [], data: {} },
-  { id: 'static-3', type: 'transform', label: 'ASR', connections: [], data: {} }, 
-  { id: 'static-4', type: 'transform', label: 'txt_parser', connections: [], data: {} },
-  { id: 'static-5', type: 'transform', label: 'clip', connections: [], data: {} }, 
-  { id: 'static-6’, type: 'transform', label: 'clap', connections: [], data: {} }, 
-  { id: 'grouped', type: 'RAG', label: 'Grouped Node', connections: [], data: {} }, 
-];
-"""
